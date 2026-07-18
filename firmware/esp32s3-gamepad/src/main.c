@@ -226,11 +226,13 @@ void app_main(void)
             led_rx_count++;   // pisca o LED verde (pacote recebido)
             uint32_t raw = ((uint32_t)pkt[0]<<8) | ((~pkt[1]) & 0xFF);
 
-            // qual jogador? pipe do STATUS (bits 3:1); fallback no bit 0x8000
+            // qual jogador? pipe do STATUS (bits 3:1); fallback no bit 0x8000.
+            // INVERTIDO: o switch fisico P1 do controle transmite no pipe1 e
+            // vice-versa, entao switch-P1 -> itf0 (Player 1), switch-P2 -> itf1.
             unsigned pipe = (status >> 1) & 0x07;
-            unsigned port = (pipe == 0) ? 0 : (pipe == 1) ? 1 : ((raw & 0x8000) ? 1 : 0);
+            unsigned port = (pipe == 1) ? 0 : (pipe == 0) ? 1 : ((raw & 0x8000) ? 0 : 1);
             if (raw != last[port]) {
-                send_report(port, raw);            // P1->itf0, P2->itf1
+                send_report(port, raw);            // switch-P1->itf0, switch-P2->itf1
                 if (port == 0) ble_hid_update(raw); // BLE espelha o Player 1
                 last[port] = raw;
             }
