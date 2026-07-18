@@ -38,7 +38,6 @@ had become a working wireless receiver.
 One ESP32 ended up doing both jobs — the Wi-Fi bridge and the gamepad receiver — switchable
 from the controller itself.
 
-![The ESP32-S3, hand-labeled "Wifi Dongle"](docs/images/04-wifi-dongle-board.jpg)
 ![The finished dongle next to the R36S it was built for](docs/images/05-r36s-and-esp32.jpg)
 
 > The full reverse-engineered RF protocol (in case you want to port it to another board or
