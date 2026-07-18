@@ -118,16 +118,13 @@ static const tusb_desc_device_t usb_device_desc = {
     .bNumConfigurations = 0x01,
 };
 
-#define EPNUM_HID_P1 0x81
-#define EPNUM_HID_P2 0x82
+#define EPNUM_HID 0x81
 static const uint8_t usb_config_desc[] = {
-    // config: 2 interfaces (Player 1 e Player 2)
-    TUD_CONFIG_DESCRIPTOR(1, 2, 0, TUD_CONFIG_DESC_LEN + 2 * TUD_HID_DESC_LEN,
+    // config: 1 interface HID (um controle so - switch fisico morreu)
+    TUD_CONFIG_DESCRIPTOR(1, 1, 0, TUD_CONFIG_DESC_LEN + TUD_HID_DESC_LEN,
                           TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 100),
     TUD_HID_DESCRIPTOR(0, 4, HID_ITF_PROTOCOL_NONE, sizeof(hid_report_desc),
-                       EPNUM_HID_P1, 16, 10),
-    TUD_HID_DESCRIPTOR(1, 5, HID_ITF_PROTOCOL_NONE, sizeof(hid_report_desc),
-                       EPNUM_HID_P2, 16, 10),
+                       EPNUM_HID, 16, 10),
 };
 
 static const char *usb_strings[] = {
@@ -135,8 +132,7 @@ static const char *usb_strings[] = {
     "DataFrog-Transplant",  // 1: fabricante
     "SF900 Wireless Gamepad", // 2: produto
     "SF900-001",            // 3: serial
-    "SF900 Player 1",       // 4: interface HID P1
-    "SF900 Player 2",       // 5: interface HID P2
+    "SF900 HID",            // 4: interface HID
 };
 
 /* ================= button mapping ================= */
@@ -173,14 +169,13 @@ static uint32_t map_buttons(uint32_t raw)
     return b;
 }
 
-// envia para a interface HID do jogador (itf 0 = P1, itf 1 = P2)
-static void send_report(uint8_t itf, uint32_t raw)
+static void send_report(uint32_t raw)
 {
-    if (!tud_hid_n_ready(itf)) return;
+    if (!tud_hid_ready()) return;
     hid_gamepad_report_t r = {0};
     r.hat = dpad_to_hat(raw);
     r.buttons = map_buttons(raw);
-    tud_hid_n_report(itf, 0, &r, sizeof(r));
+    tud_hid_report(0, &r, sizeof(r));
 }
 
 void app_main(void)
@@ -213,7 +208,7 @@ void app_main(void)
     printf("XN297 STATUS=0x%02X, aguardando controle...\n", xn_r1(0x07));
 
     unsigned empty=0;
-    uint32_t last[2]={0xFFFFFFFF,0xFFFFFFFF};   // por jogador
+    uint32_t last=0xFFFFFFFF;
     TickType_t combo_start=0, combo_last_seen=0;
     while (true) {
         uint8_t status = xn_r1(0x07);
@@ -226,15 +221,12 @@ void app_main(void)
             led_rx_count++;   // pisca o LED verde (pacote recebido)
             uint32_t raw = ((uint32_t)pkt[0]<<8) | ((~pkt[1]) & 0xFF);
 
-            // qual jogador? pipe do STATUS (bits 3:1); fallback no bit 0x8000.
-            // INVERTIDO: o switch fisico P1 do controle transmite no pipe1 e
-            // vice-versa, entao switch-P1 -> itf0 (Player 1), switch-P2 -> itf1.
-            unsigned pipe = (status >> 1) & 0x07;
-            unsigned port = (pipe == 1) ? 0 : (pipe == 0) ? 1 : ((raw & 0x8000) ? 0 : 1);
-            if (raw != last[port]) {
-                send_report(port, raw);            // switch-P1->itf0, switch-P2->itf1
-                if (port == 0) ble_hid_update(raw); // BLE espelha o Player 1
-                last[port] = raw;
+            // um controle so: manda tudo pro unico gamepad (switch fisico morreu,
+            // recebe em qualquer endereco que o controle estiver transmitindo)
+            if (raw != last) {
+                send_report(raw);
+                ble_hid_update(raw);
+                last = raw;
             }
 
             TickType_t now = xTaskGetTickCount();
