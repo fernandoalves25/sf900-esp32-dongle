@@ -52,8 +52,6 @@ console had become a working wireless receiver.
 **The result isn't pretty — but it works.** One ESP32 ended up doing both jobs — the Wi-Fi
 bridge and the gamepad receiver — switchable from the controller itself.
 
-![The finished dongle next to the R36S it was built for](docs/images/04-r36s-dongle.jpg)
-
 > The full reverse-engineered RF protocol (in case you want to port it to another board or
 > another controller) is in [docs/PROTOCOL.md](docs/PROTOCOL.md) — credit for the RF work
 > goes to [axgdev/UniFrog](https://github.com/axgdev/UniFrog).
