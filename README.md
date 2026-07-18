@@ -8,6 +8,9 @@ handhelds (ArkOS / dArkOS / ROCKNIX):
 - 🔵 **…and over Bluetooth too** — the same firmware also advertises as a **BLE HID gamepad**
   ("SF900 Gamepad"), so you can pair the controller straight to a **phone, PC, Mac or
   tablet**, no cable. USB and Bluetooth run at the same time.
+- 👬 **2 players** — the controller's **P1/P2 switch** is honored: the dongle enumerates as
+  **two** USB gamepads and routes each controller to Player 1 or Player 2. Two SF900s = local
+  multiplayer on the R36S.
 - 📶 **USB Wi-Fi** — shows up as a **USB network adapter** (works on the R36S *and* on
   Windows) so a Wi-Fi-less handheld gets online for scraping, achievements and ROM transfer.
 - 🔁 **Both on one board**, switched by holding **L + R + SELECT** on the controller for
@@ -138,6 +141,10 @@ Just want one mode? Flash a single project the normal way: `pio run -t upload` i
      (no PIN), and the controller works wirelessly there too — at the same time as USB.
      *(ESP32-S3 is BLE-only, so this works on modern devices; some older consoles/TVs that
      only speak Bluetooth Classic can't pair — use USB for those.)*
+   - **2 players:** flip the controller's **P1/P2 switch** to choose which player it drives.
+     With two controllers, one on P1 and one on P2, both work at once. On the R36S they show
+     up as two independent pads (`js0`, `js1`). *(On Windows both may show the same name in
+     `joy.cpl` — a cosmetic quirk of composite HID gamepads; they still work as two.)*
 3. **Switch to Wi-Fi:** hold **L + R + SELECT** ~1.5 s. It reboots as a network adapter.
    Set Wi-Fi once over its USB-serial console: `sta -s <SSID> -p <password>` (2.4 GHz only) —
    credentials are saved.
