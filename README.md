@@ -136,7 +136,8 @@ Just want one mode? Flash a single project the normal way: `pio run -t upload` i
 
 1. Plug the ESP32's **native USB** into the console via the USB-C OTG adapter.
 2. **Gamepad (default):** turn on the SF900 and play — it's a standard HID gamepad (D-pad on
-   the hat, A/B/X/Y/L/R/SELECT/START on buttons 0–7).
+   the hat, A/B/X/Y/L/R/SELECT/START on buttons 0–7). If ArkOS/dArkOS says the controller is
+   "not configured", drop in the mapping files from [`arkos/`](arkos/).
    - **Over Bluetooth:** on a phone/PC/Mac, open Bluetooth, pair with **"SF900 Gamepad"**
      (no PIN), and the controller works wirelessly there too — at the same time as USB.
      *(ESP32-S3 is BLE-only, so this works on modern devices; some older consoles/TVs that
@@ -165,6 +166,7 @@ firmware/
   esp32s3-wifi-dongle/  USB network (RNDIS) dongle + mode-switch watcher
   xn297-selftest/       bring-up tools (SPI selftest, RSSI scanner, receiver-to-serial)
   xn297-sniffer/        passive SPI sniffer (to reverse-engineer other controllers)
+arkos/                  controller mapping files for ArkOS/dArkOS (RetroArch + SDL)
 docs/PROTOCOL.md        the SF900 RF protocol, for porting elsewhere
 scripts/                flash both OTA slots (Windows + Linux/macOS)
 ```
