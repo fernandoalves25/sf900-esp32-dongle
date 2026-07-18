@@ -2,3 +2,4 @@ dependencies:
   idf: ">=5.0"
   espressif/esp_tinyusb:
     version: "~1.4.0"
+  espressif/led_strip: "^2.5"

@@ -22,6 +22,7 @@
 #include "esp_system.h"
 #include "nvs_flash.h"
 #include "ble_hid.h"
+#include "led_rx.h"
 
 /* Combinacao para trocar de modo: L + R + SELECT (segurar ~2s).
  * bits do raw: L=0x0800, R=0x1000, SELECT=0x0020 */
@@ -208,6 +209,7 @@ void app_main(void)
     // radio
     xn_bus_init();
     xn_stock_config();
+    led_rx_start();   // LED verde fraco pisca a cada pacote recebido
     printf("XN297 STATUS=0x%02X, aguardando controle...\n", xn_r1(0x07));
 
     unsigned empty=0;
@@ -221,6 +223,7 @@ void app_main(void)
             xn_read_payload(pkt,2);
             xn_cmd0(0xE2); xn_w1(0x07,0x70); xn_cmd(0xFD,0x00);
             empty=0; next_channel();
+            led_rx_count++;   // pisca o LED verde (pacote recebido)
             uint32_t raw = ((uint32_t)pkt[0]<<8) | ((~pkt[1]) & 0xFF);
 
             // qual jogador? pipe do STATUS (bits 3:1); fallback no bit 0x8000
