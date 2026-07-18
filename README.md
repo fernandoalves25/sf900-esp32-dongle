@@ -16,8 +16,9 @@ like the R36S / R36H and clones running ArkOS / dArkOS / ROCKNIX:
 > **transplanted from a dead SF2000 board** (the `XN297LBW` chip + crystal + antenna),
 > but you can also use any cheap `XN297L` module — see [docs/WIRING.md](docs/WIRING.md).
 >
-> 📖 **The full story — cutting the dead SF2000 board, the transplant, the RF bring-up,
-> the dead ends, and the breakthrough — is in [docs/BUILD-LOG.md](docs/BUILD-LOG.md).**
+> 📖 **The full technical story** — cutting the dead SF2000 board, the transplant, the RF
+> bring-up, the dead ends, and the breakthrough — is in [docs/BUILD-LOG.md](docs/BUILD-LOG.md).
+> For the human side of it (and the build photos), see [docs/STORY.md](docs/STORY.md).
 
 ## Why this exists
 
