@@ -78,9 +78,13 @@ else
 fi
 
 say ""
-say "Done. If EmulationStation still shows 'not configured', open"
-say "Start -> Configure Input in EmulationStation once (that always works)."
+say "This only ADDS an SF900 profile (matched by its USB id) -"
+say "it does NOT touch the R36S built-in controller."
 say ""
-say "Press any key / button to exit..."
-read -n 1 -s < "$CURR_TTY"
+say "If EmulationStation still shows 'not configured', open"
+say "Start -> Configure Input in EmulationStation once."
+say ""
+say "Closing in 6 seconds..."
+sleep 6
 printf "\033c" > "$CURR_TTY"
+exit 0
