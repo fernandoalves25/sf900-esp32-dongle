@@ -515,6 +515,10 @@ void initialise_wifi(void)
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_FLASH));
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_start());
+    // desliga o power-save do WiFi: com modem-sleep o ESP dorme o radio entre
+    // beacons e derruba conexoes TCP ociosas (SSH caindo). Como o dongle e
+    // alimentado pelo USB do console, nao precisamos economizar energia.
+    ESP_ERROR_CHECK(esp_wifi_set_ps(WIFI_PS_NONE));
     initialized = true;
     xTaskCreate(wifi_auto_connect_task, "wifi_auto_conn", 4096, NULL, 5, NULL);
     led_status_start();

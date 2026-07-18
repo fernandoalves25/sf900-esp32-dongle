@@ -35,7 +35,7 @@ fi
 
 cat > "$DEST/SF900 Wireless Gamepad.cfg" <<'EOF'
 input_driver = "udev"
-input_device = "SF900 Wireless Gamepad"
+input_device = "DataFrog-Transplant SF900 Wireless Gamepad"
 input_vendor_id = "12346"
 input_product_id = "16388"
 input_b_btn = "1"

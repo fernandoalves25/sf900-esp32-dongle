@@ -97,6 +97,26 @@ uint16_t tud_hid_get_report_cb(uint8_t inst, uint8_t id, hid_report_type_t type,
 void tud_hid_set_report_cb(uint8_t inst, uint8_t id, hid_report_type_t type, const uint8_t *buf, uint16_t len)
 { (void)inst;(void)id;(void)type;(void)buf;(void)len; }
 
+// device descriptor com VID/PID FIXOS (0x303A/0x4004 = 12346/16388).
+// sem isso o esp_tinyusb calcula o PID a partir do nr de interfaces HID,
+// e ele mudava (0x4004 -> 0x4008) ao ativar o 2o player, quebrando o autoconfig.
+static const tusb_desc_device_t usb_device_desc = {
+    .bLength            = sizeof(tusb_desc_device_t),
+    .bDescriptorType    = TUSB_DESC_DEVICE,
+    .bcdUSB             = 0x0200,
+    .bDeviceClass       = 0x00,
+    .bDeviceSubClass    = 0x00,
+    .bDeviceProtocol    = 0x00,
+    .bMaxPacketSize0    = 64,
+    .idVendor           = 0x303A,
+    .idProduct          = 0x4004,
+    .bcdDevice          = 0x0100,
+    .iManufacturer      = 0x01,
+    .iProduct           = 0x02,
+    .iSerialNumber      = 0x03,
+    .bNumConfigurations = 0x01,
+};
+
 #define EPNUM_HID_P1 0x81
 #define EPNUM_HID_P2 0x82
 static const uint8_t usb_config_desc[] = {
@@ -163,7 +183,7 @@ void app_main(void)
 
     // USB
     tinyusb_config_t tcfg = {
-        .device_descriptor = NULL,           // usa o device descriptor padrao
+        .device_descriptor = &usb_device_desc,   // VID/PID fixos (0x303A/0x4004)
         .string_descriptor = usb_strings,
         .string_descriptor_count = sizeof(usb_strings)/sizeof(usb_strings[0]),
         .external_phy = false,
