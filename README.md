@@ -15,6 +15,9 @@ like the R36S / R36H and clones running ArkOS / dArkOS / ROCKNIX:
 > without buying anything" and ended as a from-scratch RF receiver. The radio was
 > **transplanted from a dead SF2000 board** (the `XN297LBW` chip + crystal + antenna),
 > but you can also use any cheap `XN297L` module — see [docs/WIRING.md](docs/WIRING.md).
+>
+> 📖 **The full story — cutting the dead SF2000 board, the transplant, the RF bring-up,
+> the dead ends, and the breakthrough — is in [docs/BUILD-LOG.md](docs/BUILD-LOG.md).**
 
 ## Why this exists
 
@@ -35,8 +38,9 @@ firmware/
   xn297-selftest/      bring-up tools: SPI selftest, RSSI band scanner, SF900 receiver-to-serial
   xn297-sniffer/       passive SPI-slave sniffer (for reverse-engineering other controllers)
 docs/
+  BUILD-LOG.md         the full story: dead SF2000 -> transplant -> receiver -> dual-mode
   PROTOCOL.md          the SF900 / SF2000 RF protocol, fully documented
-  XN297-TRANSPLANT.md  how the radio was cut from a dead SF2000 and validated
+  XN297-TRANSPLANT.md  step-by-step: cutting the radio out of a dead SF2000 and validating it
   WIRING.md            pinout / connections (ESP32-S3 <-> XN297L)
 scripts/
   flash-dual-mode.ps1  flash both firmwares into the two OTA slots (Windows)
