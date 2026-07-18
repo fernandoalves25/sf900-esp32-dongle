@@ -5,6 +5,9 @@ handhelds (ArkOS / dArkOS / ROCKNIX):
 
 - 🎮 **Wireless gamepad** — receives the **Data Frog SF900 / SF2000** 2.4 GHz controller
   and shows up on the console as a plain **USB-HID gamepad**.
+- 🔵 **…and over Bluetooth too** — the same firmware also advertises as a **BLE HID gamepad**
+  ("SF900 Gamepad"), so you can pair the controller straight to a **phone, PC, Mac or
+  tablet**, no cable. USB and Bluetooth run at the same time.
 - 📶 **USB Wi-Fi** — shows up as a **USB network adapter** (works on the R36S *and* on
   Windows) so a Wi-Fi-less handheld gets online for scraping, achievements and ROM transfer.
 - 🔁 **Both on one board**, switched by holding **L + R + SELECT** on the controller for
@@ -131,6 +134,10 @@ Just want one mode? Flash a single project the normal way: `pio run -t upload` i
 1. Plug the ESP32's **native USB** into the console via the USB-C OTG adapter.
 2. **Gamepad (default):** turn on the SF900 and play — it's a standard HID gamepad (D-pad on
    the hat, A/B/X/Y/L/R/SELECT/START on buttons 0–7).
+   - **Over Bluetooth:** on a phone/PC/Mac, open Bluetooth, pair with **"SF900 Gamepad"**
+     (no PIN), and the controller works wirelessly there too — at the same time as USB.
+     *(ESP32-S3 is BLE-only, so this works on modern devices; some older consoles/TVs that
+     only speak Bluetooth Classic can't pair — use USB for those.)*
 3. **Switch to Wi-Fi:** hold **L + R + SELECT** ~1.5 s. It reboots as a network adapter.
    Set Wi-Fi once over its USB-serial console: `sta -s <SSID> -p <password>` (2.4 GHz only) —
    credentials are saved.
