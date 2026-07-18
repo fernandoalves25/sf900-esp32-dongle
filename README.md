@@ -31,9 +31,11 @@ the ESP32.
 
 Claude Code was essential here — it walked me through the chip's wiring and wrote all of the
 ESP32 code, while I did the soldering myself, using **thin enameled copper wire salvaged
-from old headphones**. When the first bring-up test came back clean and, a bit later, the
-controller's button presses started decoding correctly, a chip pulled from a dead console
-had become a working wireless receiver.
+from old headphones**. To keep those hair-thin joints from shorting or cracking, I locked
+them down with a drop of **super glue set with a pinch of baking soda** — it cures instantly
+into a hard, insulating bead. When the first bring-up test came back clean and, a bit later,
+the controller's button presses started decoding correctly, a chip pulled from a dead
+console had become a working wireless receiver.
 
 One ESP32 ended up doing both jobs — the Wi-Fi bridge and the gamepad receiver — switchable
 from the controller itself.
