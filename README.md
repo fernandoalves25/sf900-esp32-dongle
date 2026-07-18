@@ -24,10 +24,14 @@ Ethernet cable. It even works on Windows.
 Then I found an **SF900 controller** in a drawer and wondered: *what if I could use this
 controller on my R36S — or even on Windows?* I remembered I had an **SF2000 with a dead
 motherboard** that wouldn't turn on. So I cut out the corner of the board that receives the
-2.4 GHz controller signal — the little chip, its crystal and its antenna — and wired it to
-the ESP32.
+2.4 GHz controller signal — the little chip, its crystal and its antenna.
 
-![The XN297LBW radio corner — SOP-8 chip, 16 MHz crystal, gold flex antenna](docs/images/02-xn297-radio.jpg)
+![The dead SF2000 board — the red square is the radio section I cut out](docs/images/01-sf2000-cut-marked.jpg)
+
+Up close, that's all it is: the **XN297LBW** transceiver, a **16 MHz** crystal, and the
+printed **flex antenna** (the gold meander).
+
+![The XN297LBW, its crystal and the flex antenna](docs/images/02-xn297-radio.jpg)
 
 Claude Code was essential here — it walked me through the chip's wiring and wrote all of the
 ESP32 code, while I did the soldering myself, using **thin enameled copper wire salvaged
@@ -37,10 +41,12 @@ into a hard, insulating bead. When the first bring-up test came back clean and, 
 the controller's button presses started decoding correctly, a chip pulled from a dead
 console had become a working wireless receiver.
 
-One ESP32 ended up doing both jobs — the Wi-Fi bridge and the gamepad receiver — switchable
-from the controller itself.
+![The transplanted radio wired to the ESP32-S3 with headphone wire](docs/images/03-result.jpg)
 
-![The finished dongle next to the R36S it was built for](docs/images/05-r36s-and-esp32.jpg)
+**The result isn't pretty — but it works.** One ESP32 ended up doing both jobs — the Wi-Fi
+bridge and the gamepad receiver — switchable from the controller itself.
+
+![The finished dongle next to the R36S it was built for](docs/images/04-r36s-dongle.jpg)
 
 > The full reverse-engineered RF protocol (in case you want to port it to another board or
 > another controller) is in [docs/PROTOCOL.md](docs/PROTOCOL.md) — credit for the RF work
