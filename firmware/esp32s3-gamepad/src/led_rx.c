@@ -8,7 +8,7 @@
 
 #define LED_GPIO     48
 #define TICK_MS      25
-#define GREEN_LOW    8    /* luminosidade baixa */
+#define GREEN_LOW    2    /* quase apagado */
 
 volatile uint32_t led_rx_count = 0;   /* incrementado a cada pacote recebido */
 
