@@ -1,143 +1,161 @@
-# SF900 ESP32 Dongle — wireless gamepad receiver + Wi-Fi dongle for the R36S (and friends)
+# SF900 ESP32 Dongle
 
-Turn an **ESP32-S3** into a **dual-mode USB dongle** for handheld retro consoles
-like the R36S / R36H and clones running ArkOS / dArkOS / ROCKNIX:
+Turn a **$5 ESP32-S3** into a **dual-mode USB dongle** for the R36S and other retro
+handhelds (ArkOS / dArkOS / ROCKNIX):
 
-- 🎮 **Wireless gamepad receiver** — receives the **Data Frog SF900 / SF2000**
-  2.4 GHz controller and presents it to the console as a standard **USB-HID gamepad**.
-- 📶 **USB Wi-Fi dongle** — presents as a **USB RNDIS network adapter** (works on the
-  R36S Linux *and* on Windows 10) so a Wi-Fi-less handheld gets online for scraping,
-  RetroAchievements, netplay and ROM transfer.
-- 🔁 **Both in one board**, switched on the fly by holding **L + R + SELECT** on the
-  controller (~1.5 s). The last mode used is remembered across reboots.
+- 🎮 **Wireless gamepad** — receives the **Data Frog SF900 / SF2000** 2.4 GHz controller
+  and shows up on the console as a plain **USB-HID gamepad**.
+- 📶 **USB Wi-Fi** — shows up as a **USB network adapter** (works on the R36S *and* on
+  Windows) so a Wi-Fi-less handheld gets online for scraping, achievements and ROM transfer.
+- 🔁 **Both on one board**, switched by holding **L + R + SELECT** on the controller for
+  ~1.5 s. It remembers the last mode.
 
-> This started as "how do I get Wi-Fi and a wireless controller on my R36S clone
-> without buying anything" and ended as a from-scratch RF receiver. The radio was
-> **transplanted from a dead SF2000 board** (the `XN297LBW` chip + crystal + antenna),
-> but you can also use any cheap `XN297L` module — see [docs/WIRING.md](docs/WIRING.md).
->
-> 📖 **The full technical story** — cutting the dead SF2000 board, the transplant, the RF
-> bring-up, the dead ends, and the breakthrough — is in [docs/BUILD-LOG.md](docs/BUILD-LOG.md).
-> For the human side of it (and the build photos), see [docs/STORY.md](docs/STORY.md).
+---
 
-## Why this exists
+## The story
 
-The SF900 controller and the SF2000-style consoles talk over a proprietary 2.4 GHz
-link using the **Panchip XN297L** transceiver (an nRF24-like chip). There was no open
-receiver you could plug into a *different* console. Meanwhile the R36S has no built-in
-Wi-Fi. This project solves both with a single, cheap ESP32-S3.
+It didn't start as a radio project — it started as a Wi-Fi problem.
 
-The RF protocol itself was **reverse-engineered by [axgdev/UniFrog](https://github.com/axgdev/UniFrog)** —
-this repo reimplements it on the ESP32 and adds the USB-HID + Wi-Fi dongle sides.
+I'd already written firmware to give my R36S Wi-Fi, but not in the usual way: I couldn't
+get a cheap USB dongle's native mode working, so instead the **ESP32 itself** joins the
+Wi-Fi network and hands the connection to the console over OTG — showing up exactly like an
+Ethernet cable. It even works on Windows.
 
-## Repository layout
+Then I found an **SF900 controller** in a drawer and wondered: *what if I could use this
+controller on my R36S — or even on Windows?* I remembered I had an **SF2000 with a dead
+motherboard** that wouldn't turn on. So I cut out the corner of the board that receives the
+2.4 GHz controller signal — the little chip, its crystal and its antenna — and wired it to
+the ESP32.
+
+![The XN297LBW radio corner — SOP-8 chip, 16 MHz crystal, gold flex antenna](docs/images/02-xn297-radio.jpg)
+
+Claude Code was essential here — it walked me through the chip's wiring and wrote all of the
+ESP32 code, while I did the soldering myself, using **thin enameled copper wire salvaged
+from old headphones**. When the first bring-up test came back clean and, a bit later, the
+controller's button presses started decoding correctly, a chip pulled from a dead console
+had become a working wireless receiver.
+
+One ESP32 ended up doing both jobs — the Wi-Fi bridge and the gamepad receiver — switchable
+from the controller itself.
+
+![The ESP32-S3, hand-labeled "Wifi Dongle"](docs/images/04-wifi-dongle-board.jpg)
+![The finished dongle next to the R36S it was built for](docs/images/05-r36s-and-esp32.jpg)
+
+> The full reverse-engineered RF protocol (in case you want to port it to another board or
+> another controller) is in [docs/PROTOCOL.md](docs/PROTOCOL.md) — credit for the RF work
+> goes to [axgdev/UniFrog](https://github.com/axgdev/UniFrog).
+
+---
+
+## Build your own
+
+You don't need to understand the RF circuit — you only need to connect **5 wires**.
+
+### What you need
+
+- An **ESP32-S3** dev board (the native USB port becomes the gamepad / network device).
+- A **Panchip XN297L** radio — either a **ready-made module** (search *"XN297L module 2.4G"*,
+  *"XN297LBW module"* or *"XL2400"*), or the radio section **transplanted from a dead SF2000**.
+  - ⚠️ **It must be an XN297L** (XN297L / XN297LBW / XN297LBN / XL2400). An **nRF24L01 will
+    not work** — the SF900 uses the XN297's over-the-air scramble. Run it at **3.3 V**.
+- A **USB-C OTG adapter** to plug the ESP32's native USB into the console's bottom port.
+
+### The 5 connections (this is all you need)
+
+The XN297L is an 8-pin chip. Solder **5 of its pins** to the ESP32-S3:
 
 ```
-firmware/
-  esp32s3-gamepad/     SF900 receiver -> USB-HID gamepad  (boots in OTA slot 0)
-  esp32s3-wifi-dongle/ USB RNDIS Wi-Fi dongle + mode-switch watcher (OTA slot 1)
-  xn297-selftest/      bring-up tools: SPI selftest, RSSI band scanner, SF900 receiver-to-serial
-  xn297-sniffer/       passive SPI-slave sniffer (for reverse-engineering other controllers)
-docs/
-  BUILD-LOG.md         the full story: dead SF2000 -> transplant -> receiver -> dual-mode
-  PROTOCOL.md          the SF900 / SF2000 RF protocol, fully documented
-  XN297-TRANSPLANT.md  step-by-step: cutting the radio out of a dead SF2000 and validating it
-  WIRING.md            pinout / connections (ESP32-S3 <-> XN297L)
-scripts/
-  flash-dual-mode.ps1  flash both firmwares into the two OTA slots (Windows)
-  flash-dual-mode.sh   same, for Linux/macOS
+            ┌───────U───────┐
+   CSN  ─ 1 ┤●              ├ 8 ─ ANT   ← leave on module
+   SCK  ─ 2 ┤   XN297L      ├ 7 ─ VSS
+   DATA ─ 3 ┤   (8-pin)     ├ 6 ─ XC2   ← leave on module
+   VDD  ─ 4 ┤               ├ 5 ─ XC1   ← leave on module
+            └───────────────┘
 ```
 
-## Hardware
+| XN297L pin | wire   | → ESP32-S3 |
+|------------|--------|------------|
+| 1 · CSN    | 🟡     | **GPIO10** |
+| 2 · SCK    | 🟢     | **GPIO12** |
+| 3 · DATA   | 🔵     | **GPIO11** |
+| 4 · VDD    | 🔴     | **3V3**    |
+| 7 · VSS    | ⚫     | **GND**    |
 
-- **ESP32-S3** dev board (uses the native USB port for the gamepad/network interface).
-- A **Panchip XN297L** 2.4 GHz radio — either:
-  - **transplanted** from a dead SF2000 board (the `XN297LBW` + 16 MHz crystal + matching
-    network + flex antenna, cut as one piece — see [docs/XN297-TRANSPLANT.md](docs/XN297-TRANSPLANT.md)), or
-  - a **ready-made module** you buy — search *"XN297L module 2.4G"*, *"XN297LBW module"*,
-    or *"XL2400"*. **It must be an XN297L; an nRF24L01 will not work** (the SF900 uses the
-    XN297 on-air scramble). Details + why in [docs/WIRING.md](docs/WIRING.md#which-radio-module-to-use).
-- A **USB-C OTG adapter** to plug the board's native-USB into the console's bottom port.
+That's it. Pins 5, 6, 8 stay on the module (crystal and antenna). No level shifters, no
+extra parts. Keep the wires short (≤ 10 cm).
 
-Wiring (3-wire SPI, see [docs/WIRING.md](docs/WIRING.md)):
+> **Confirming pin 1 on a transplant:** don't trust the dot on the chip — with a multimeter,
+> pin 7 beeps to ground, pins 5/6 to the crystal, pin 8 toward the antenna; then 1/2/3 are
+> CSN/SCK/DATA in order. When cutting a dead SF2000 board, keep the chip **with** its crystal,
+> matching parts and antenna as one piece.
 
-| XN297L | ESP32-S3 | Function        |
-|--------|----------|-----------------|
-| CSN    | GPIO10   | FSPICS0         |
-| SCK    | GPIO12   | FSPICLK         |
-| DATA   | GPIO11   | FSPID (3-wire)  |
-| VDD    | 3V3      | 2.3–3.3 V only  |
-| VSS    | GND      | ground          |
+---
 
-## Build & flash
+## Flash it
 
-Requires [PlatformIO](https://platformio.org/) (the ESP-IDF platform is pulled
-automatically on first build).
+Needs [PlatformIO](https://platformio.org/) (it pulls ESP-IDF automatically on first build).
+Flash over the board's **UART/COM** port; the **native USB** port is what becomes the
+gamepad / network device.
 
 ```bash
-# gamepad firmware
-cd firmware/esp32s3-gamepad && pio run
-
-# wifi dongle firmware
-cd firmware/esp32s3-wifi-dongle && pio run
+# build both firmwares
+cd firmware/esp32s3-gamepad     && pio run && cd -
+cd firmware/esp32s3-wifi-dongle && pio run && cd -
 ```
 
-To get the **dual-mode** setup (both firmwares in the two OTA slots, gamepad boots
-first), build both then run the flash script:
+Then flash both into the two OTA slots (gamepad boots first):
 
 ```powershell
-# Windows (PowerShell) — adjust the COM port inside the script
+# Windows — set your COM port
 scripts\flash-dual-mode.ps1 -Port COM19
 ```
-
 ```bash
 # Linux / macOS
 scripts/flash-dual-mode.sh /dev/ttyACM0
 ```
 
-The script writes: bootloader, partition table, `ota_0`=gamepad, `ota_1`=wifi, and
-erases `otadata` so the board boots the gamepad first.
+Just want one mode? Flash a single project the normal way: `pio run -t upload` inside
+`firmware/esp32s3-gamepad` (gamepad) or `firmware/esp32s3-wifi-dongle` (Wi-Fi).
 
-> **Flashing note:** flash over the board's **UART/COM** port. The **native USB** port
-> is what becomes the gamepad / network device at runtime.
+---
 
-## Using it
+## Use it
 
-1. Plug the board's **native USB** into the console via a USB-C OTG adapter.
-2. **Gamepad mode (default):** turn on the SF900 controller and play. The console sees
-   a standard HID gamepad (D-pad on the hat, A/B/X/Y/L/R/SELECT/START on buttons 0–7).
-3. **Switch to Wi-Fi mode:** hold **L + R + SELECT** on the controller for ~1.5 s. The
-   dongle reboots as a USB network adapter. Configure Wi-Fi once over its USB-serial
-   console: `sta -s <SSID> -p <password>` (2.4 GHz only). Credentials are saved.
-4. **Switch back:** hold **L + R + SELECT** again. The board remembers the last mode.
+1. Plug the ESP32's **native USB** into the console via the USB-C OTG adapter.
+2. **Gamepad (default):** turn on the SF900 and play — it's a standard HID gamepad (D-pad on
+   the hat, A/B/X/Y/L/R/SELECT/START on buttons 0–7).
+3. **Switch to Wi-Fi:** hold **L + R + SELECT** ~1.5 s. It reboots as a network adapter.
+   Set Wi-Fi once over its USB-serial console: `sta -s <SSID> -p <password>` (2.4 GHz only) —
+   credentials are saved.
+4. **Switch back:** hold **L + R + SELECT** again. The last mode is remembered.
 
-## How the mode switch works
+> Why a controller combo instead of a button? USB descriptors are fixed at boot, so one
+> binary can't be both a network device and a gamepad — the two firmwares live in two flash
+> (OTA) slots and the combo reboots into the other one. (The BOOT button was the original
+> plan, but it's just nicer to switch from the controller in your hand.)
 
-USB device descriptors are fixed at compile time, so one binary can't be *both* a
-network device and a HID gamepad. Instead the two firmwares live in **two OTA app
-slots**; holding the combo calls `esp_ota_set_boot_partition()` and reboots into the
-other slot. Each firmware watches the controller for the combo (the Wi-Fi firmware
-runs a tiny background XN297 listener that doesn't disturb Wi-Fi).
+---
 
-> The design originally used the **BOOT button** to switch, but that button proved
-> unreliable on the test board, so the controller combo became the trigger — which is
-> nicer anyway since the controller is already in your hand.
+## What's in here
 
-## Status
-
-Everything here is **working and validated on real hardware**: SPI selftest passes,
-the RSSI scanner sees the controller on channels 4/29/49/79, buttons decode correctly,
-the USB-HID gamepad is recognized by Windows and the console, the RNDIS Wi-Fi dongle
-gets online, and both mode-switch directions work.
+```
+firmware/
+  esp32s3-gamepad/      SF900 receiver → USB-HID gamepad
+  esp32s3-wifi-dongle/  USB network (RNDIS) dongle + mode-switch watcher
+  xn297-selftest/       bring-up tools (SPI selftest, RSSI scanner, receiver-to-serial)
+  xn297-sniffer/        passive SPI sniffer (to reverse-engineer other controllers)
+docs/PROTOCOL.md        the SF900 RF protocol, for porting elsewhere
+scripts/                flash both OTA slots (Windows + Linux/macOS)
+```
 
 ## Credits
 
-- **[axgdev/UniFrog](https://github.com/axgdev/UniFrog)** — reverse-engineered the SF900/SF2000 RF protocol. This project would not exist without it.
-- **[Espressif esp-iot-solution](https://github.com/espressif/esp-iot-solution)** — the `usb_dongle` example the Wi-Fi side is built on.
-- **Panchip** — XN297L datasheet.
+- **[axgdev/UniFrog](https://github.com/axgdev/UniFrog)** — reverse-engineered the
+  SF900/SF2000 RF protocol. This wouldn't exist without it.
+- **[Espressif esp-iot-solution](https://github.com/espressif/esp-iot-solution)** — the
+  `usb_dongle` example the Wi-Fi side is built on.
 - The R36S / ArkOS / dArkOS4Clone / ROCKNIX communities.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Bundled third-party components retain their own licenses
-(Apache-2.0 / MIT); attribution is in the LICENSE file.
+MIT — see [LICENSE](LICENSE). Bundled third-party components keep their own licenses.
