@@ -90,18 +90,23 @@ static void next_channel(void){ ch_idx=(ch_idx+1)%sizeof(CHANNELS); xn_w1(0x05,C
 /* ================= USB HID descriptors ================= */
 static const uint8_t hid_report_desc[] = { TUD_HID_REPORT_DESC_GAMEPAD() };
 
+// mesmo report map para os dois jogadores (2 interfaces HID)
 const uint8_t *tud_hid_descriptor_report_cb(uint8_t instance) { (void)instance; return hid_report_desc; }
 uint16_t tud_hid_get_report_cb(uint8_t inst, uint8_t id, hid_report_type_t type, uint8_t *buf, uint16_t len)
 { (void)inst;(void)id;(void)type;(void)buf;(void)len; return 0; }
 void tud_hid_set_report_cb(uint8_t inst, uint8_t id, hid_report_type_t type, const uint8_t *buf, uint16_t len)
 { (void)inst;(void)id;(void)type;(void)buf;(void)len; }
 
-#define EPNUM_HID 0x81
+#define EPNUM_HID_P1 0x81
+#define EPNUM_HID_P2 0x82
 static const uint8_t usb_config_desc[] = {
-    TUD_CONFIG_DESCRIPTOR(1, 1, 0, TUD_CONFIG_DESC_LEN + TUD_HID_DESC_LEN,
+    // config: 2 interfaces (Player 1 e Player 2)
+    TUD_CONFIG_DESCRIPTOR(1, 2, 0, TUD_CONFIG_DESC_LEN + 2 * TUD_HID_DESC_LEN,
                           TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 100),
     TUD_HID_DESCRIPTOR(0, 4, HID_ITF_PROTOCOL_NONE, sizeof(hid_report_desc),
-                       EPNUM_HID, 16, 10),
+                       EPNUM_HID_P1, 16, 10),
+    TUD_HID_DESCRIPTOR(1, 5, HID_ITF_PROTOCOL_NONE, sizeof(hid_report_desc),
+                       EPNUM_HID_P2, 16, 10),
 };
 
 static const char *usb_strings[] = {
@@ -109,7 +114,8 @@ static const char *usb_strings[] = {
     "DataFrog-Transplant",  // 1: fabricante
     "SF900 Wireless Gamepad", // 2: produto
     "SF900-001",            // 3: serial
-    "SF900 HID",            // 4: interface HID
+    "SF900 Player 1",       // 4: interface HID P1
+    "SF900 Player 2",       // 5: interface HID P2
 };
 
 /* ================= button mapping ================= */
@@ -140,13 +146,14 @@ static uint32_t map_buttons(uint32_t raw)
     return b;
 }
 
-static void send_report(uint32_t raw)
+// envia para a interface HID do jogador (itf 0 = P1, itf 1 = P2)
+static void send_report(uint8_t itf, uint32_t raw)
 {
-    if (!tud_hid_ready()) return;
+    if (!tud_hid_n_ready(itf)) return;
     hid_gamepad_report_t r = {0};
     r.hat = dpad_to_hat(raw);
     r.buttons = map_buttons(raw);
-    tud_hid_report(0, &r, sizeof(r));
+    tud_hid_n_report(itf, 0, &r, sizeof(r));
 }
 
 void app_main(void)
@@ -178,7 +185,7 @@ void app_main(void)
     printf("XN297 STATUS=0x%02X, aguardando controle...\n", xn_r1(0x07));
 
     unsigned empty=0;
-    uint32_t last=0xFFFFFFFF;
+    uint32_t last[2]={0xFFFFFFFF,0xFFFFFFFF};   // por jogador
     TickType_t combo_start=0, combo_last_seen=0;
     while (true) {
         uint8_t status = xn_r1(0x07);
@@ -189,7 +196,15 @@ void app_main(void)
             xn_cmd0(0xE2); xn_w1(0x07,0x70); xn_cmd(0xFD,0x00);
             empty=0; next_channel();
             uint32_t raw = ((uint32_t)pkt[0]<<8) | ((~pkt[1]) & 0xFF);
-            if (raw != last) { send_report(raw); ble_hid_update(raw); last=raw; }
+
+            // qual jogador? pipe do STATUS (bits 3:1); fallback no bit 0x8000
+            unsigned pipe = (status >> 1) & 0x07;
+            unsigned port = (pipe == 0) ? 0 : (pipe == 1) ? 1 : ((raw & 0x8000) ? 1 : 0);
+            if (raw != last[port]) {
+                send_report(port, raw);            // P1->itf0, P2->itf1
+                if (port == 0) ble_hid_update(raw); // BLE espelha o Player 1
+                last[port] = raw;
+            }
 
             TickType_t now = xTaskGetTickCount();
             if ((raw & SWITCH_COMBO) == SWITCH_COMBO) {
