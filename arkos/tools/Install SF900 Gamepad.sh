@@ -4,9 +4,11 @@
 # https://github.com/fernandoalves25/sf900-esp32-dongle
 #
 # Drop this file into the EASYROMS "tools" folder, then run it once from
-# EmulationStation -> Tools. It installs the RetroArch autoconfig (and, if found,
-# an SDL gamecontrollerdb line) so the "controller not configured" popup goes away
-# and the buttons are mapped. Matches by USB VID:PID 0x303A:0x4004.
+# EmulationStation -> Tools. It installs a RetroArch autoconfig JUST for the SF900
+# (matched by its USB id 0x303A:0x4004), so the pad is mapped in games.
+#
+# It is 100% ADDITIVE: it only writes one new per-device profile. It does NOT touch
+# the handheld's built-in controller, es_input.cfg, or any shared file.
 
 if [ "$(id -u)" -ne 0 ]; then
     exec sudo -- "$0" "$@"
@@ -14,21 +16,24 @@ fi
 
 CURR_TTY="/dev/tty1"
 printf "\033c" > "$CURR_TTY"
-echo "" > "$CURR_TTY"
 say() { echo "  $*" > "$CURR_TTY"; }
+
+# ArkOS user is 'ark'. Resolve its home explicitly (running as root, $HOME=/root).
+ARK_HOME="$(getent passwd ark | cut -d: -f6)"
+[ -z "$ARK_HOME" ] && ARK_HOME="/home/ark"
+DEST="$ARK_HOME/.config/retroarch/autoconfig/udev"
 
 say "=== SF900 Gamepad mapping installer ==="
 say ""
 
-# ---- 1) RetroArch autoconfig (fixes in-game controls) ----------------------
-RA_CFG="/home/ark/.config/retroarch/retroarch.cfg"
-AUTODIR="$(grep -m1 joypad_autoconfig_dir "$RA_CFG" 2>/dev/null | cut -d'"' -f2)"
-[ -z "$AUTODIR" ] && AUTODIR="/home/ark/.config/retroarch/autoconfig"
+if [ ! -d "$DEST" ]; then
+    say "RetroArch autoconfig folder not found at:"
+    say "  $DEST"
+    say "Is this ArkOS/dArkOS? Aborting (nothing changed)."
+    sleep 6; printf "\033c" > "$CURR_TTY"; exit 1
+fi
 
-install_ra() {
-    local dir="$1"
-    mkdir -p "$dir"
-    cat > "$dir/SF900 Wireless Gamepad.cfg" <<'EOF'
+cat > "$DEST/SF900 Wireless Gamepad.cfg" <<'EOF'
 input_driver = "udev"
 input_device = "SF900 Wireless Gamepad"
 input_vendor_id = "12346"
@@ -50,41 +55,20 @@ input_menu_toggle_btn = "7"
 input_exit_emulator_btn = "7"
 input_save_state_btn = "5"
 input_load_state_btn = "4"
-input_state_slot_increase_btn = "h0right"
-input_state_slot_decrease_btn = "h0left"
 EOF
-    chown -R ark:ark "$dir" 2>/dev/null
-}
+chown ark:ark "$DEST/SF900 Wireless Gamepad.cfg" 2>/dev/null
 
-install_ra "$AUTODIR"
-install_ra "$AUTODIR/udev"   # some builds look in a driver subfolder
-say "RetroArch autoconfig installed:"
-say "  $AUTODIR"
-
-# ---- 2) SDL gamecontrollerdb (helps EmulationStation) ----------------------
-GUID="030000003a3000000440000000010000"
-LINE="$GUID,SF900 Wireless Gamepad,a:b1,b:b0,x:b3,y:b2,back:b6,start:b7,leftshoulder:b4,rightshoulder:b5,dpup:h0.1,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,platform:Linux,"
-DB="$(ls /opt/system/gamecontrollerdb.txt /etc/gamecontrollerdb.txt \
-        /usr/share/emulationstation/resources/gamecontrollerdb.txt 2>/dev/null | head -1)"
-if [ -n "$DB" ]; then
-    if ! grep -q "^$GUID" "$DB" 2>/dev/null; then
-        echo "$LINE" >> "$DB"
-        say "SDL mapping added to: $DB"
-    else
-        say "SDL mapping already present in: $DB"
-    fi
-else
-    say "(no gamecontrollerdb.txt found - skipping SDL step)"
-fi
-
+say "Installed (additive, SF900 only):"
+say "  $DEST/SF900 Wireless Gamepad.cfg"
 say ""
-say "This only ADDS an SF900 profile (matched by its USB id) -"
-say "it does NOT touch the R36S built-in controller."
+say "The built-in controller was NOT touched."
 say ""
-say "If EmulationStation still shows 'not configured', open"
-say "Start -> Configure Input in EmulationStation once."
+say "In games the SF900 is now mapped. In EmulationStation, if a"
+say "'configure input' popup appears for it, either skip it or run"
+say "Start -> Configure Input once - it ADDS the SF900, it won't"
+say "remove your built-in pad."
 say ""
-say "Closing in 6 seconds..."
-sleep 6
+say "Closing in 7 seconds..."
+sleep 7
 printf "\033c" > "$CURR_TTY"
 exit 0
