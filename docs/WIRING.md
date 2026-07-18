@@ -47,9 +47,42 @@ its UART.
 - Keep the module's antenna as far as possible from the ESP32's own Wi-Fi antenna
   (opposite ends of the board) to reduce interference.
 
-## Using a transplanted SF2000 radio
+## Which radio module to use
 
-If you cut the radio section out of a dead SF2000 board (chip + crystal + matching
-network + flex antenna), the same 5 wires apply — solder to the XN297LBW's CSN/SCK/DATA
-pins (or their nearest vias) and a VDD/GND point. See
-[XN297-TRANSPLANT.md](XN297-TRANSPLANT.md).
+You have two ways to get the radio:
+
+### Option A — transplant it from a dead SF2000 (what this project used)
+
+The exact part harvested here is the **Panchip XN297LBW** (SOP-8), together with its
+**16 MHz crystal (marked "16.000")**, the factory **matching network** and the **flex
+antenna** — all cut out of a dead SF2000 mainboard as one piece. It comes pre-matched to a
+real antenna, so it has the best range. The controller (SF900) uses the sibling
+**XN297LBN**. Full procedure in [XN297-TRANSPLANT.md](XN297-TRANSPLANT.md); wire the
+XN297LBW's CSN/SCK/DATA pins (or their nearest vias) plus a VDD/GND point per the table
+above.
+
+### Option B — buy a ready module (no cutting needed)
+
+Any **Panchip XN297L 2.4 GHz module** is a drop-in replacement — same firmware, same
+5 wires, no code changes. Search for:
+
+- **"XN297L module 2.4G"**
+- **"XN297LBW module"**
+- **"XL2400" / "XL2400P"** — newer Panchip parts in the same family, usually pin/command compatible
+
+These come with the chip + 16 MHz crystal + antenna already on the board; you just wire the
+5 lines. A module with a **u.FL connector + external antenna** gives the best range; a plain
+PCB-antenna module is fine for a controller used within a few meters.
+
+> ### ⚠️ It MUST be an XN297L — an nRF24L01 will NOT work
+>
+> The XN297 shares the nRF24L01's **SPI command set** (so it looks like a clone), but it
+> adds an over-the-air **data whitening / scramble** layer that the nRF24 doesn't have.
+> This firmware relies on the XN297L doing that de-scrambling **in hardware** (the
+> `SCRAMBLE_EN` bit in `DEM_CAL`). A plain nRF24L01 / nRF24L01+ cannot receive the SF900's
+> packets without significant extra software.
+>
+> - ✅ **Works:** XN297L, XN297LBW, XN297LBN, XL2400 / XL2400P
+> - ❌ **Does not work:** nRF24L01, nRF24L01+, Si24R1, and other non-XN297 chips
+>
+> Also make sure the module runs at **3.3 V** (the XN297L abs-max is 3.6 V — never 5 V).

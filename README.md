@@ -50,8 +50,12 @@ scripts/
 ## Hardware
 
 - **ESP32-S3** dev board (uses the native USB port for the gamepad/network interface).
-- An **XN297L / XN297LBW** 2.4 GHz module + 16 MHz crystal + antenna. Either a ready
-  module, or transplanted from a dead SF2000 board (see the transplant guide).
+- A **Panchip XN297L** 2.4 GHz radio — either:
+  - **transplanted** from a dead SF2000 board (the `XN297LBW` + 16 MHz crystal + matching
+    network + flex antenna, cut as one piece — see [docs/XN297-TRANSPLANT.md](docs/XN297-TRANSPLANT.md)), or
+  - a **ready-made module** you buy — search *"XN297L module 2.4G"*, *"XN297LBW module"*,
+    or *"XL2400"*. **It must be an XN297L; an nRF24L01 will not work** (the SF900 uses the
+    XN297 on-air scramble). Details + why in [docs/WIRING.md](docs/WIRING.md#which-radio-module-to-use).
 - A **USB-C OTG adapter** to plug the board's native-USB into the console's bottom port.
 
 Wiring (3-wire SPI, see [docs/WIRING.md](docs/WIRING.md)):
