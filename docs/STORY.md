@@ -57,12 +57,28 @@ often already in your drawer, and "it's dead" usually means "one part of it is d
 
 ## Photos
 
-*(Fernando's build — the real hardware behind all of this.)*
+*Fernando's build — the real hardware behind all of this.*
 
-<!-- Drop images into docs/images/ and reference them here, e.g.:
-![The dead SF2000 board, radio corner marked](images/01-sf2000-board.jpg)
-![The radio section cut free](images/02-cut-module.jpg)
-![Enameled headphone wire soldered to the XN297LBW](images/03-soldering.jpg)
-![Wired to the ESP32-S3](images/04-esp32-wiring.jpg)
-![Recognized as a gamepad](images/05-working.jpg)
+### The radio corner
+
+![XN297LBW SOP-8 transceiver with its 16 MHz crystal and the gold flex antenna](images/02-xn297-radio.jpg)
+
+The whole thing hangs off this: the `XN297LBW` (the SOP-8 chip), its **16.000 MHz**
+crystal, and the printed **flex antenna** (the gold meander). This corner — chip, crystal,
+matching network, antenna — is what gets harvested from the dead board as a single piece.
+
+### The dongle
+
+![An ESP32-S3 dev board hand-labeled "Wifi Dongle"](images/04-wifi-dongle-board.jpg)
+
+One ESP32-S3, hand-labeled *"Wifi Dongle"* — the same board that also becomes the wireless
+gamepad receiver. Two personalities, one $5 board.
+
+### On the bench, next to the R36S it was built for
+
+![The R36S handheld on the desk with the ESP32-S3 dongle in hand](images/05-r36s-and-esp32.jpg)
+
+<!-- More photos welcome — drop them in docs/images/ and add them here:
+![The dead SF2000 console board, opened](images/01-sf2000-board.jpg)
+![Enameled headphone wire soldered to the chip](images/03-soldering.jpg)
 -->
