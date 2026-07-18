@@ -63,9 +63,10 @@ often already in your drawer, and "it's dead" usually means "one part of it is d
 
 ![XN297LBW SOP-8 transceiver with its 16 MHz crystal and the gold flex antenna](images/02-xn297-radio.jpg)
 
-The whole thing hangs off this: the `XN297LBW` (the SOP-8 chip), its **16.000 MHz**
-crystal, and the printed **flex antenna** (the gold meander). This corner — chip, crystal,
-matching network, antenna — is what gets harvested from the dead board as a single piece.
+The whole thing hangs off this: the **`XN297LBW`** (the SOP-8 chip — you can read the
+marking), its **16.000 MHz** crystal, and the printed **flex antenna** (the gold meander).
+This corner — chip, crystal, matching network, antenna — is what gets harvested from the
+dead board as a single piece.
 
 ### The dongle
 
