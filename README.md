@@ -4,17 +4,16 @@ Turn a **$5 ESP32-S3** into a **dual-mode USB dongle** for the R36S and other re
 handhelds (ArkOS / dArkOS / ROCKNIX):
 
 - 🎮 **Wireless gamepad** — receives the **Data Frog SF900 / SF2000** 2.4 GHz controller
-  and shows up on the console as a plain **USB-HID gamepad**.
+  and shows up on the console as a plain **USB-HID gamepad**. It sits **alongside** the
+  handheld's built-in controller (built-in = Player 1, SF900 = Player 2) — it never replaces it.
 - 🔵 **…and over Bluetooth too** — the same firmware also advertises as a **BLE HID gamepad**
   ("SF900 Gamepad"), so you can pair the controller straight to a **phone, PC, Mac or
   tablet**, no cable. USB and Bluetooth run at the same time.
-- 👬 **2 players** — the controller's **P1/P2 switch** is honored: the dongle enumerates as
-  **two** USB gamepads and routes each controller to Player 1 or Player 2. Two SF900s = local
-  multiplayer on the R36S.
 - 📶 **USB Wi-Fi** — shows up as a **USB network adapter** (works on the R36S *and* on
   Windows) so a Wi-Fi-less handheld gets online for scraping, achievements and ROM transfer.
-- 🔁 **Both on one board**, switched by holding **L + R + SELECT** on the controller for
-  ~1.5 s. It remembers the last mode.
+- 🔁 **Gamepad and Wi-Fi on one board**, switched by holding **L + R + SELECT** on the
+  controller for ~1.5 s. It remembers the last mode.
+- 🟢 A dim-green LED blink on the dev board gives live feedback for every packet received.
 
 ---
 
@@ -49,8 +48,11 @@ console had become a working wireless receiver.
 
 ![The transplanted radio wired to the ESP32-S3 with headphone wire](docs/images/03-result.jpg)
 
-**The result isn't pretty — but it works.** One ESP32 ended up doing both jobs — the Wi-Fi
-bridge and the gamepad receiver — switchable from the controller itself.
+**The result isn't pretty — but it works.** And it kept growing: that one ESP32 became the
+Wi-Fi bridge *and* the gamepad receiver (switchable from the controller itself), learned to
+also announce itself as a **Bluetooth gamepad** for phones and PCs, and finally slotted into
+the R36S as a proper second controller next to the built-in pad. From a dead console in a
+drawer to a wireless controller you can actually play with.
 
 > The full reverse-engineered RF protocol (in case you want to port it to another board or
 > another controller) is in [docs/PROTOCOL.md](docs/PROTOCOL.md) — credit for the RF work
@@ -133,21 +135,27 @@ Just want one mode? Flash a single project the normal way: `pio run -t upload` i
 ## Use it
 
 1. Plug the ESP32's **native USB** into the console via the USB-C OTG adapter.
-2. **Gamepad (default):** turn on the SF900 and play — it's a standard HID gamepad (D-pad on
-   the hat, A/B/X/Y/L/R/SELECT/START on buttons 0–7). If ArkOS/dArkOS says the controller is
-   "not configured", drop in the mapping files from [`arkos/`](arkos/).
+2. **Gamepad (default):** turn on the SF900 and play — it's a standard HID gamepad
+   (A/B/X/Y/L/R/SELECT/START on buttons 0–7, D-pad on buttons 8–11). It shows up **next to**
+   the built-in controller: built-in = Player 1, SF900 = Player 2, both live at once.
+   - **On ArkOS/dArkOS:** copy the mapping from [`arkos/`](arkos/) (a one-tap installer runs
+     from EmulationStation → Tools) so the SF900 is recognized, and make sure RetroArch's
+     **Max Users ≥ 2** so it lands on Player 2 without displacing your built-in pad. Details
+     and the "why" are in [`arkos/README.md`](arkos/README.md).
    - **Over Bluetooth:** on a phone/PC/Mac, open Bluetooth, pair with **"SF900 Gamepad"**
      (no PIN), and the controller works wirelessly there too — at the same time as USB.
      *(ESP32-S3 is BLE-only, so this works on modern devices; some older consoles/TVs that
      only speak Bluetooth Classic can't pair — use USB for those.)*
-   - **2 players:** flip the controller's **P1/P2 switch** to choose which player it drives.
-     With two controllers, one on P1 and one on P2, both work at once. On the R36S they show
-     up as two independent pads (`js0`, `js1`). *(On Windows both may show the same name in
-     `joy.cpl` — a cosmetic quirk of composite HID gamepads; they still work as two.)*
 3. **Switch to Wi-Fi:** hold **L + R + SELECT** ~1.5 s. It reboots as a network adapter.
    Set Wi-Fi once over its USB-serial console: `sta -s <SSID> -p <password>` (2.4 GHz only) —
    credentials are saved.
 4. **Switch back:** hold **L + R + SELECT** again. The last mode is remembered.
+
+> **Note on the P1/P2 switch:** the SF900 has a physical player switch, and an earlier build
+> exposed it as two separate USB gamepads. On the unit here that switch physically broke, so
+> the firmware was simplified to a **single** gamepad that receives on either address — it
+> just works as one controller. If your switch is intact and you want the two-gamepad
+> behavior back, it's in the git history.
 
 > Why a controller combo instead of a button? USB descriptors are fixed at boot, so one
 > binary can't be both a network device and a gamepad — the two firmwares live in two flash
