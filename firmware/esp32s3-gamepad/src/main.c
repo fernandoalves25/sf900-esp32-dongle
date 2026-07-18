@@ -20,6 +20,8 @@
 #include "class/hid/hid_device.h"
 #include "esp_ota_ops.h"
 #include "esp_system.h"
+#include "nvs_flash.h"
+#include "ble_hid.h"
 
 /* Combinacao para trocar de modo: L + R + SELECT (segurar ~2s).
  * bits do raw: L=0x0800, R=0x1000, SELECT=0x0020 */
@@ -162,6 +164,14 @@ void app_main(void)
     };
     ESP_ERROR_CHECK(tinyusb_driver_install(&tcfg));
 
+    // BLE HID (roda junto com o USB) — precisa de NVS p/ bonding
+    esp_err_t nv = nvs_flash_init();
+    if (nv == ESP_ERR_NVS_NO_FREE_PAGES || nv == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        nvs_flash_erase(); nvs_flash_init();
+    }
+    ble_hid_init();
+    printf("BLE: pareie com 'SF900 Gamepad'.\n");
+
     // radio
     xn_bus_init();
     xn_stock_config();
@@ -179,7 +189,7 @@ void app_main(void)
             xn_cmd0(0xE2); xn_w1(0x07,0x70); xn_cmd(0xFD,0x00);
             empty=0; next_channel();
             uint32_t raw = ((uint32_t)pkt[0]<<8) | ((~pkt[1]) & 0xFF);
-            if (raw != last) { send_report(raw); last=raw; }
+            if (raw != last) { send_report(raw); ble_hid_update(raw); last=raw; }
 
             TickType_t now = xTaskGetTickCount();
             if ((raw & SWITCH_COMBO) == SWITCH_COMBO) {
