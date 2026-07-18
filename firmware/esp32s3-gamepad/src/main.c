@@ -163,6 +163,12 @@ static uint32_t map_buttons(uint32_t raw)
     if (raw&0x1000) b|=GAMEPAD_BUTTON_5; // R
     if (raw&0x0020) b|=GAMEPAD_BUTTON_6; // SELECT
     if (raw&0x0010) b|=GAMEPAD_BUTTON_7; // START
+    // D-pad como BOTOES 8-11 (o RetroArch do R36S/ArkOS le o D-pad assim,
+    // igual ao controle interno; o hat nao funciona nesse build)
+    if (raw&0x0008) b|=GAMEPAD_BUTTON_8;  // UP
+    if (raw&0x0004) b|=GAMEPAD_BUTTON_9;  // DOWN
+    if (raw&0x0002) b|=GAMEPAD_BUTTON_10; // LEFT
+    if (raw&0x0001) b|=GAMEPAD_BUTTON_11; // RIGHT
     return b;
 }
 
