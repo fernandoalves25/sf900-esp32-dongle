@@ -17,6 +17,21 @@ handhelds (ArkOS / dArkOS / ROCKNIX):
 
 ---
 
+## See it working
+
+Playing on the R36S with the SF900, through the transplanted radio — and the same dongle
+paired as a Bluetooth gamepad on a phone:
+
+<p align="center">
+  <img src="docs/images/07-demo-r36s.gif" alt="Playing a game on the R36S with the SF900 controller" height="380">
+  &nbsp;&nbsp;
+  <img src="docs/images/06-bluetooth-paired.jpg" alt="SF900 Gamepad paired over Bluetooth on a phone" height="380">
+</p>
+
+▶️ Full clip: [`docs/images/demo-r36s.mp4`](docs/images/demo-r36s.mp4)
+
+---
+
 ## The story
 
 It didn't start as a radio project — it started as a Wi-Fi problem.
