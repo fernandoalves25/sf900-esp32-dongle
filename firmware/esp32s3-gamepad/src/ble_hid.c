@@ -98,6 +98,8 @@ static uint16_t btn_bits(uint32_t raw)
     return b;
 }
 
+static void start_advertising(void);
+
 bool ble_hid_connected(void) { return s_connected; }
 
 void ble_hid_update(uint32_t raw)
@@ -113,10 +115,10 @@ static void hidd_cb(void *arg, esp_event_base_t base, int32_t id, void *data)
 {
     esp_hidd_event_data_t *p = (esp_hidd_event_data_t *)data;
     switch (id) {
-    case ESP_HIDD_START_EVENT:      ESP_LOGI(TAG, "BLE HID iniciado, anunciando..."); break;
+    case ESP_HIDD_START_EVENT:      ESP_LOGI(TAG, "START_EVENT -> advertising"); start_advertising(); break;
     case ESP_HIDD_CONNECT_EVENT:    s_connected = true;  ESP_LOGI(TAG, "host conectado"); break;
-    case ESP_HIDD_DISCONNECT_EVENT: s_connected = false; ESP_LOGI(TAG, "host desconectado"); break;
-    default: break;
+    case ESP_HIDD_DISCONNECT_EVENT: s_connected = false; ESP_LOGI(TAG, "host desconectado -> readvertising"); start_advertising(); break;
+    default: ESP_LOGI(TAG, "hidd event %ld", (long)id); break;
     }
     (void)p; (void)base; (void)arg;
 }
@@ -137,18 +139,20 @@ static void start_advertising(void)
     fields.uuids16 = &hid_uuid;
     fields.num_uuids16 = 1;
     fields.uuids16_is_complete = 1;
-    ble_gap_adv_set_fields(&fields);
+    int rc = ble_gap_adv_set_fields(&fields);
+    if (rc != 0) { ESP_LOGE(TAG, "adv_set_fields rc=%d (dados nao cabem em 31B?)", rc); return; }
 
     adv.conn_mode = BLE_GAP_CONN_MODE_UND;
     adv.disc_mode = BLE_GAP_DISC_MODE_GEN;
-    ble_gap_adv_start(s_own_addr_type, NULL, BLE_HS_FOREVER, &adv, NULL, NULL);
+    rc = ble_gap_adv_start(s_own_addr_type, NULL, BLE_HS_FOREVER, &adv, NULL, NULL);
+    ESP_LOGI(TAG, "ble_gap_adv_start rc=%d (0=ok) addr_type=%d", rc, s_own_addr_type);
 }
 
 static void on_sync(void)
 {
     ble_hs_util_ensure_addr(0);
     ble_hs_id_infer_auto(0, &s_own_addr_type);
-    start_advertising();
+    ESP_LOGI(TAG, "nimble sync ok, addr_type=%d", s_own_addr_type);
 }
 static void on_reset(int reason) { ESP_LOGW(TAG, "nimble reset; reason=%d", reason); }
 
