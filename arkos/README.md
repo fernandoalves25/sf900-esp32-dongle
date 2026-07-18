@@ -7,6 +7,18 @@ When you plug the dongle into an ArkOS / dArkOS handheld it may say the controll
 - **USB VID:PID:** `0x303A:0x4004` (decimal `12346:16388`)
 - **Buttons:** A=0, B=1, X=2, Y=3, L=4, R=5, SELECT=6, START=7 · D-pad = hat
 
+## Easiest: the one-tap installer
+
+Copy [`tools/Install SF900 Gamepad.sh`](tools/) into the **`tools`** folder on the
+**EASYROMS** partition of your SD card (the one Windows/macOS can see). Then on the handheld
+open **EmulationStation → Tools → Install SF900 Gamepad** and run it once. It installs the
+RetroArch autoconfig and the SDL mapping to the right places (which live on the Linux ext4
+partition your PC can't write to), so no WSL / ext4 mounting needed.
+
+> This is the recommended path — it works for anyone, on any card, without a Linux PC.
+
+The manual steps below do the same thing by hand if you prefer.
+
 ## 1. In-game (RetroArch)
 
 Copy [`retroarch-autoconfig/SF900 Wireless Gamepad.cfg`](retroarch-autoconfig/) to the
